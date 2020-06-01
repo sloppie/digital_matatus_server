@@ -9,6 +9,7 @@ const route = express.Router();
 
 // middleware
 route.use(bodyParser.json({limit: "50mb"})); // parse JSON sent to the server
+route.use(bodyParser.urlencoded({limit: "50mb", extended: false})); // parse JSON sent to the server
 
 route.get("/", (request, response) => {
   let email = "sloppie@example.com";
@@ -54,6 +55,15 @@ route.get("/isUser/:email", (request, response) => {
 //     () => response.send("Failed to update")
 //   );
 // });
+
+route.get("/login", (request, response) => {
+  console.log(request.query.email)
+  User.findById(
+    User.generateHash(request.query.email),
+    (details) => response.json(details),
+    () => response.json(false)
+  )
+});
 
 // use a  PUT request to update the deviceToken (since they already filled in their preferences)
 // returns a response of:

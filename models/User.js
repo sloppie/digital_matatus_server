@@ -15,10 +15,10 @@ const UserSchema = new mongoose.Schema({
     required: true
   },
   reportsFollowed: {
-    type: [String]
+    type: String
   },
   reported: { // these are the cases the user reported
-    type: [String],
+    type: String,
   },
   deviceToken: String, 
 });
@@ -236,7 +236,7 @@ class User extends DataModel {
 
     return {
       favouriteRoutes: JSON.stringify(favouriteRoutes),
-      reportsFollowed: JSON.stringify.stringify([]),
+      reportsFollowed: JSON.stringify([]),
       reported: JSON.stringify([]),
       deviceToken: deviceToken
     };
