@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const DataModel = require('./DataModel');
 const CDNHandler = require('../utilities/CDNHandler');
+const NotificationHandler = require('../utilities/NotificationHandler');
 
 const ReportSchema = new mongoose.Schema({
   _id: {
@@ -13,7 +14,7 @@ const ReportSchema = new mongoose.Schema({
   culpritIdentified: String, // Arrays of culprits identified are stringified
 });
 
-const ReportModel = mongoose.model('report', ReportSchema, 'route');
+const ReportModel = mongoose.model('report', ReportSchema, 'report');
 
 class Report extends DataModel {
 
@@ -25,20 +26,45 @@ class Report extends DataModel {
    * 
    * @param {*} incidentDescription 
    */
-  addNewReport(userSentReport, onErr, onSuccess) {
+  addNewReport(userSentReport, onSuccess, onErr) {
     // STEP ONE:
     // Pack the report into a reportable format
     let packedReport = Report.packReport(userSentReport);
 
-    ReportModel.create(packedReport)
-      .then(doc => {
-        let {_id, culpritDescription} = doc; // _id
-        let {route_id} = JSON.parse(culpritsDescription); // route_id
+    // ReportModel.create(packedReport)
+    //   .then(doc => {
+    //     doc.model
+    //     let {_id, culpritDescription} = doc; // _id
+    //     let {route_id} = userSentReport.culpritDescription; // route_id
 
-        // !TODO add the FCM http api for sending out notifications
+    //     // !TODO add the FCM http api for sending out notifications
 
-        onSuccess({_id, route_id});
-      }).catch(err => onErr()) ;
+    //     onSuccess({_id, route_id});
+    //   }).catch(err => onErr()) ;
+
+    // generate report id by keeping count of report count in collection
+    ReportModel.find().count((err, result) => {
+      
+      if(err)
+        onErr();
+      else {
+        let report_id = `r_id_${result}`;
+        packedReport._id = report_id;
+
+        console.log("Creating notification...")
+        ReportModel.create(packedReport).then(doc => {
+          let route_id = userSentReport.culpritDescription.routeID;
+          NotificationHandler.sendNotifications(
+            NotificationHandler.generateReportMessage(userSentReport, report_id),
+            route_id
+          );
+          console.log("Notification created")
+          onSuccess({_id: report_id, route_id});
+        }).catch(err => {console.log(err); onErr()});
+      }
+
+    });
+
   }
 
   /**
@@ -115,6 +141,10 @@ class Report extends DataModel {
     finalReport.privateInformation = JSON.stringify(userSentReport.privateInformation)
 
     return finalReport;
+  }
+
+  static generateReportID() {
+    return ReportModel.find().count()
   }
 
 }

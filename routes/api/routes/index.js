@@ -34,7 +34,7 @@ route.get("/", (request, response) => {
     Routes.DataModel.insertMany(modelledRoutes, (err, result) => {
 
       if(err) {
-        User.DataModel.find({favouriteRoutes: new RegExp("sksk", "gi")}, (err, docs) => {
+        Routes.DataModel.find({route_long_name: new RegExp("wangige", "gi")}, (err, docs) => {
           if(err)
             response.send("eror");
           else {

@@ -126,32 +126,15 @@ class User extends DataModel {
   }
 
   /**
-   * @todo refactor and use the super().updateDetails to carry this out
+   * @todo add deviceToken verification
    * 
    * @param hash this is the unique hash for the specific user
    * @param {{key: any, value: any}} newDetails this is the new details to be added to the object
-   * @param {Function} onSuccess - callback to be called on successful update
+   * @param {Function} onSuccess - callback to be called on successful update, takes in newUserDetails
    * @param {Function} onErr - callback to be called once an error occurs
    */
   updateUserDetails(hash, newDetails, onSuccess, onErr) {
-    UserModel.updateOne(
-      {_id: hash}, // grab by ID
-      newDetails, // new Details
-      (err, data) => { // callback on request finish
-        
-        if(err)
-          onErr();
-        else {
-
-          if(data)
-            onSuccess();
-          else
-            onErr();
-
-        }
-
-      }
-    );
+    this.updateDetails(hash, newDetails, onSuccess, onErr);
   }
 
   /**
@@ -173,7 +156,7 @@ class User extends DataModel {
           if(result) {
             let reported = JSON.parse(result.reported);
 
-            report.unshift(reportID);
+            reported.unshift(reportID);
 
             // super().updateDetails handles the updating
             this.updateDetails(

@@ -22,6 +22,10 @@ app.get("/", (request, response) => {
   response.send("Open for service");
 });
 
+module.exports = {
+  dirname: __dirname
+};
+
 // This route is used to erve the static files that are the Photos and videos and audio
 // route has two parameters: 
 // - mediaType -> contaiins the media type to help decide which folder in the cdn to nav to.
@@ -55,3 +59,4 @@ app.get("/cdn/:mediaType/:fileName", (request, response) => {
 });
 
 app.listen(3000, () => console.log("listening on port 3000"));
+

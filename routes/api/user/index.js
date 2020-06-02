@@ -72,7 +72,7 @@ route.get("/login", (request, response) => {
 //  if any one of this steps fails, it sends back FALSE
 route.put("/login", (request, response) => {
   // fetch user details
-  User.findById(
+  User.findById( // prevent loggin in to new-users
     User.generateHash(request.body.email),
     (details) => { // onSuccess proceed to add userDetails on the newDeviceToken
       // !TODO - create a function that will fetch the previous device token from notification tray
@@ -80,7 +80,7 @@ route.put("/login", (request, response) => {
       User.updateUserDetails(
         User.generateHash(request.body.email), // create a hash of the user details
         {deviceToken: request.body.deviceToken}, // only update needed to be carried
-        () => response.json(details), // onSuccessful update, push payload to user to restore their data
+        (newDetails) => response.json(newDetails), // onSuccessful update, push payload to user to restore their data
         () => response.json(false) // onError updating,
       );
     },
@@ -100,7 +100,7 @@ route.post("/new", (request, response) => {
     UserModel.generateUserDetails(request.body), // generates user details from the request body
   );
 
-  (added)? response.json(true): response.json(false);
+  (added)? response.json({state: true, _id: createEmailHash(request.body.email)}): response.json(false);
 });
 
 

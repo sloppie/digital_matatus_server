@@ -1,13 +1,20 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 
 // data models
-const ReportModel = require('../../../models/Report');
-const Routes = new ReportModel();
+const ReportModel = require('../../../models').Report;
+const Report = new ReportModel();
 
-const UserModel = require('../../../models/User');
+const UserModel = require('../../../models').User;
 const User = new UserModel();
 
+const RoutesModel = require('../../../models').Routes;
+const Routes = new RoutesModel();
+
 const route = express.Router();
+
+// middleware
+route.use(bodyParser.json({limit: "50mb"}))
 
 route.get("/", (request, response) => {
 
@@ -48,7 +55,7 @@ route.post("/new", (request, response) => {
     const onUserAddSuccess = () => { // called when the details are added to User.reported
       payload.userReportsAdded = true;
 
-      Routes.addNewReport( // route add new report STUB
+      Routes.insertNewReport( // route add new report STUB 
         doc.route_id, // route_id to be added to
         doc._id, // is of the report to be pushed to the Route.reports
         onRouteAddSuccess, // success adding info to the route
@@ -59,7 +66,7 @@ route.post("/new", (request, response) => {
 
     const onUserAddErr = () => {
 
-      Routes.addNewReport( // route add new report STUB
+      Routes.insertNewReport( // route add new report STUB
         doc.route_id, // route_id to be added to
         doc._id, //
         onRouteAddSuccess, // success adding info to the route
@@ -85,6 +92,16 @@ route.post("/new", (request, response) => {
     onReportAddErr // on error adding the report
   );
 
+});
+
+route.get("/find/:reportid", (request, response) => {
+  let _id = request.params.reportid
+  console.log(`_id: ${_id}`)
+  Report.findById(
+    _id, 
+    (result) => response.json(result),
+    () => response.status(404).json(false)
+  );
 });
 
 module.exports = route;

@@ -3,6 +3,8 @@ const path = require('path');
 const baseDir = require('../').dirname;
 // const audio = require('');
 
+console.log(baseDir)
+
 class CDNHandler {
 
   /**
@@ -38,7 +40,7 @@ class CDNHandler {
    */
   getFileName() {
     let {length} = fs.readdirSync(
-      path.join(`${baseDir}`, "cdn", type)
+      path.join(`D:\\digital_matatus_server`, "cdn", this.type)
     ); // returns the length of the directory
     
     let fileName = `${CDNHandler.MEDIA_HEADER[this.type]}${length}`;
@@ -57,7 +59,7 @@ class CDNHandler {
     let mediaFileLinks = this.mediaArr.map(mediaFile => {
       let fileName = this.getFileName();
       fs.writeFileSync(
-        path.join(baseDir, "cdn", type, fileName),
+        path.join("D:\\digital_matatus_server", "cdn", this.type, fileName),
         mediaFile
       );
 

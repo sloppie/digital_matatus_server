@@ -51,7 +51,7 @@ class DataModel {
    * 
    * @param _id this is the unique hash for the specific user
    * @param {{key: any, value: any}} newDetails this is the new details to be added to the object
-   * @param {Function} onSuccess - callback to be called on successful update
+   * @param {Function} onSuccess - callback to be called on successful update, callback is fed in the newData
    * @param {Function} onErr - callback to be called once an error occurs
    */
   updateDetails(_id, newDetails, onSuccess, onErr) {
@@ -66,7 +66,10 @@ class DataModel {
         else {
 
           if(data)
-            onSuccess(); // on success
+            this.DataModel.findById(
+              _id,
+              (err, result) => (err) ? onErr(): onSuccess(result) //sends back result with the payload 
+            );
           else
             onErr(); // on err -> data is empty
 
