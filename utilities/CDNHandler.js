@@ -59,8 +59,8 @@ class CDNHandler {
     let mediaFileLinks = this.mediaArr.map(mediaFile => {
       let fileName = this.getFileName();
       fs.writeFileSync(
-        path.join("D:\\digital_matatus_server", "cdn", this.type, fileName),
-        mediaFile
+        path.join("D:\\digital_matatus_server", "cdn", this.type, `${fileName}.${mediaFile.extension}`),
+        mediaFile.data
       );
 
       return `http://localhost:3000/cdn/${this.type}/${fileName}`; // url representing how to fetch the file
