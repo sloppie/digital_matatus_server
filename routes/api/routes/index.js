@@ -1,5 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const Event = require('events');
+const FindReportEvent = require('./events').FindReport;
+
+const FindReport = new FindReportEvent();
 
 // models
 const models = require('../../../models');
@@ -86,12 +90,33 @@ route.get("/:route_id/reports", (request, response) => {
   // STEP 1: get all the reportIDs stored in the Route details
   const onSuccessFind = (result) => {
     let ALL_REPORTS = [];
+    // console.log(result);
     let report_ids = JSON.parse(result.reports);
+    let reportCount = 0;
+
+    const handleAddition = () => {
+      reportCount++;
+
+      if(reportCount == report_ids.length) {
+        console.log("Report sent");
+        response.json(ALL_REPORTS);
+
+      }
+
+    }
+
+    FindReport.on('REPORT_ADDED', handleAddition.bind(this));
 
     // STEP 2:
     // create mini success callbacks that will be called on each iteration of report_ids found in route
-    const onMiniSuccess = (report) => ALL_REPORTS.push(report);
-    const onMiniError = () => console.log("Error and/or no reports being added to route: " + route_id);
+    const onMiniSuccess = (report) => {
+      ALL_REPORTS.push(report);
+      FindReport.emit("REPORT_ADDED")
+    }
+    const onMiniError = () => {
+      console.log("Error and/or no reports being added to route: " + route_id)
+      FindReport.emit("REPORT_ADDED")
+    }
 
     // STEP 3:
     // iterate through each id and fetch the corresponding report
@@ -101,7 +126,8 @@ route.get("/:route_id/reports", (request, response) => {
       onMiniError // called on error retrieving
     ));
 
-    response.json(ALL_REPORTS);
+    // console.log("Reports found: " + ALL_REPORTS.length);
+    // response.json(ALL_REPORTS);
   }
 
   const onErrorFind = () => response.json([]);
@@ -112,5 +138,17 @@ route.get("/:route_id/reports", (request, response) => {
     onErrorFind // error callback
   );
 });
+
+// route 
+// route.get("/:route_id/reports/filter", (request, response) => {
+//   let category = request.query.category;
+//   let value = request.query.value;
+
+//   let report_ids = request.params.report_id;
+
+//   // first filter by report_id
+//   Routes.DataModel.find({report_id})
+
+// });
 
 module.exports = route;

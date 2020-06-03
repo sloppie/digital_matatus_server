@@ -2,6 +2,12 @@ const mongoose = require('mongoose');
 const DataModel = require('./DataModel');
 const CDNHandler = require('../utilities/CDNHandler');
 const NotificationHandler = require('../utilities/NotificationHandler');
+const EventEmitter = require('events');
+
+// handle query finish events
+class QeuryHandler extends EventEmitter {}
+const QueryState = new QeuryHandler();
+
 
 const ReportSchema = new mongoose.Schema({
   _id: {
@@ -10,8 +16,14 @@ const ReportSchema = new mongoose.Schema({
   },
   incidentDescription: String,
   culpritDescription: String,
-  privateInformation: String,
-  culpritIdentified: String, // Arrays of culprits identified are stringified
+  privateInformation: {
+    type: String,
+    required: true,
+  },
+  culpritIdentified: {
+    type: String,
+    required: true
+  }, // Arrays of culprits identified are stringified
 });
 
 const ReportModel = mongoose.model('report', ReportSchema, 'report');
@@ -31,20 +43,9 @@ class Report extends DataModel {
     // Pack the report into a reportable format
     let packedReport = Report.packReport(userSentReport);
 
-    // ReportModel.create(packedReport)
-    //   .then(doc => {
-    //     doc.model
-    //     let {_id, culpritDescription} = doc; // _id
-    //     let {route_id} = userSentReport.culpritDescription; // route_id
-
-    //     // !TODO add the FCM http api for sending out notifications
-
-    //     onSuccess({_id, route_id});
-    //   }).catch(err => onErr()) ;
-
     // generate report id by keeping count of report count in collection
     ReportModel.find().count((err, result) => {
-      
+
       if(err)
         onErr();
       else {
@@ -58,11 +59,79 @@ class Report extends DataModel {
             NotificationHandler.generateReportMessage(userSentReport, report_id),
             route_id
           );
-          console.log("Notification created")
+          console.log("Notification created");
           onSuccess({_id: report_id, route_id});
         }).catch(err => {console.log(err); onErr()});
       }
 
+    });
+
+  }
+
+  /**
+   * @todo refactor and turn this into a function that is a member of super(), all it has to do,
+   * is take in the keys and priority of each key as an object also
+   * 
+   * recursive function that recurses over the data until all the keys are parsed
+   * 
+   * @param {Array<String>} remainingKeys is the amount of keys that are yet to be processed
+   * @param {{}} queryValues values to search by
+   * @param {(payload: {}) => {}} onSuccess callback to be executed onSuccess, payload is passed in
+   * @param {() => {}} onErr callback to executed on an error
+   * @param {Array<Document>} resultsProcessed contains a payload of the results processed before hand
+   */
+  find(remainingKeys, queryValues, onSuccess, onErr, resultsProcessed) {
+    
+    let priorities = {
+      route_id: 1, // helps narrow down most
+      date: 2, // narrows down more significantly than the ones below
+      location: 3, // same priority as the flags
+      flags: 3 // each has a location and a flag, it will not help arrow down as much as route_id & Date will
+    };
+    
+    let activePriority = null; // store the one that will be used to query the data
+
+    remainingKeys.forEach(value => {
+
+      if(activePriority !== null) {
+
+        if(priorities[activePriority] < priorities[value])
+          activePriority = value;
+
+      } else
+        activePriority = value;
+
+    });
+
+    let keys = Object.keys(queryValues);
+    
+    if(keys.indexOf(route_id) != -1) {
+      
+    }
+
+    const handleFinishedQuery = (data) => {
+      let newRemainingKeys = [...remainingKeys];
+      newRemainingKeys.splice(newRemainingKeys.indexOf(activePriority), 1);
+      
+    }
+
+    QueryState.on("QUERY_FINISHED", );
+  }
+
+  // callback for querying route_id
+  /**
+   * 
+   * @param {string} _id on error id
+   * @param {*} onErr 
+   */
+  queryRouteID(_id, onErr) {
+
+    ReportModel.findById(_id, (err, result) => {
+      if(err)
+        onErr(); // throw err in advance and send it back to the user
+      else
+        QueryState.emit("QUERY_FINISHED", result);
+      
     });
 
   }

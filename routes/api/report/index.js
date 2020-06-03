@@ -94,6 +94,35 @@ route.post("/new", (request, response) => {
 
 });
 
+// this is used to query results based on the report categories available described in
+// in the query field of the application.
+// one of the parameters has to be a valid key (userID or OrgID) for it to present a valid result.
+// localhost/find/categories=route_id;date;location_type;flags&route_id={string}&date={timestamp}:{timestamp}&location_type={string}&flags=Verbal;Non-verbal;Physical&key={string}
+route.get("/find", (request, response) => {
+  // fetch all the search query queries and split at the delimiter to get an Array to use to query
+  let categories = request.query.categories.split(";");
+  let objValues = {};
+
+  categories.forEach(category => {
+    objValues[category] = request.query[category];
+  });
+
+  const onSuccess = (payload) => {
+    response.json(payload);
+  }
+
+  const onError = () => {
+    response.json(false);
+  }
+
+  Report.find(
+    objValues, // values to search by
+    onSuccess, // onSuccess payload
+    onError, // onErr callback
+  );
+
+});
+
 route.get("/find/:reportid", (request, response) => {
   let _id = request.params.reportid
   console.log(`_id: ${_id}`)
