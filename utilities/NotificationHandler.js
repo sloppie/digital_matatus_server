@@ -76,15 +76,16 @@ const sendNotifications = (message, routeID) => {
       console.log("Messages not sent")
     else{
       result.forEach(user => {
+        console.log(user.deviceToken);
   
         if(messagePools[activePool].tokens.length < 500) {
-          messagePools[activePool].tokens.push(JSON.parse(user.deviceToken));
+          messagePools[activePool].tokens.push(user.deviceToken);
         } else {
           activePool++; // increment activePool for future purposes
           // creates a new pool, with the first message being the unique mesage at hand
           messagePools.push({
             ...message,
-            tokens: [JSON.parse(user.deviceToken)]
+            tokens: [user.deviceToken]
           }); 
         }
   
