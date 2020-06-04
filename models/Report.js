@@ -80,42 +80,60 @@ class Report extends DataModel {
    * @param {() => {}} onErr callback to executed on an error
    * @param {Array<Document>} resultsProcessed contains a payload of the results processed before hand
    */
-  find(remainingKeys, queryValues, onSuccess, onErr, resultsProcessed) {
-    
+  find(remainingKeys, queryValues, onSuccess, onErr, resultsProcessed=null) {
+
+    if(remainingKeys.length == 0) {
+      QueryState.removeAllListeners("QUERY_FINISHED");
+      onSuccess(resultsProcessed);
+      return;
+    }
+
     let priorities = {
       route_id: 1, // helps narrow down most
       date: 2, // narrows down more significantly than the ones below
-      location: 3, // same priority as the flags
-      flags: 3 // each has a location and a flag, it will not help arrow down as much as route_id & Date will
+      location_type: 3, // same priority as the flags
+      flags: 3, // each has a location and a flag, it will not help arrow down as much as route_id & Date will
+      not_there: 20
     };
     
-    let activePriority = null; // store the one that will be used to query the data
+    let activePriority = "not_there"; // store the one that will be used to query the data
 
     remainingKeys.forEach(value => {
 
-      if(activePriority !== null) {
-
-        if(priorities[activePriority] < priorities[value])
+        if(priorities[activePriority] > priorities[value])
           activePriority = value;
-
-      } else
-        activePriority = value;
 
     });
 
-    let keys = Object.keys(queryValues);
-    
-    if(keys.indexOf(route_id) != -1) {
-      
+    const handleFinishedQuery = (data, key) => {
+
+      remainingKeys.splice(remainingKeys.indexOf(key), 1);
+      this.find(
+        remainingKeys,
+        queryValues,
+        onSuccess,
+        onErr,
+        data // filteredData
+      );
     }
 
-    const handleFinishedQuery = (data) => {
-      let newRemainingKeys = [...remainingKeys];
-      newRemainingKeys.splice(newRemainingKeys.indexOf(activePriority), 1);
-      
+    QueryState.on("QUERY_FINISHED", handleFinishedQuery);
+
+    switch(activePriority) {
+      case "route_id":
+        this.queryRouteID(queryValues[activePriority], onErr);
+        break;
+      case "date":
+        this.queryDate(queryValues[activePriority], onErr, resultsProcessed);
+        break;
+      case "location_type":
+        this.queryLocation(queryValues[activePriority], onErr, resultsProcessed);
+        break;
+      case "flags": 
+        this.queryFlags(queryValues[activePriority], onErr, resultsProcessed);
+        break;
     }
 
-    QueryState.on("QUERY_FINISHED", );
   }
 
   // callback for querying route_id
@@ -125,14 +143,118 @@ class Report extends DataModel {
    * @param {*} onErr 
    */
   queryRouteID(_id, onErr) {
-
-    ReportModel.findById(_id, (err, result) => {
+    console.log("Route query value: " + _id);
+    ReportModel.find({culpritDescription: new RegExp("\"routeID\":\"" + _id + "\"")}, (err, result) => {
       if(err)
-        onErr(); // throw err in advance and send it back to the user
-      else
-        QueryState.emit("QUERY_FINISHED", result);
+         console.log(err);
+        // onErr(); // throw err in advance and send it back to the user
+      else {
+        console.log("EVENT_EMITTED by: RouteID. resultsSize: " + result.length);
+        QueryState.emit("QUERY_FINISHED", result, "route_id");
+      }
       
     });
+
+  }
+
+  queryDate(dateString, onErr, data=null) {
+    let newResults;
+    let dateObj = {
+      from: Number(dateString.split(":")[0]),
+      to: Number(dateString.split(":")[1])
+    };
+
+    if(data !== null) {
+      newResults = data.filter(report => {
+        let incidentDescription = JSON.parse(report.incidentDescription);
+        let date = new Date(incidentDescription.date).getTime();
+
+        return date > dateObj.from && date < dateObj.to;
+      });
+
+        console.log("EVENT_EMITTED by: Date");
+      QueryState.emit("QUERY_FINISHED", newResults, "date");
+    } else {
+      ReportModel.find((err, results) => {
+
+        if(err)
+         console.log(err);
+          // onErr();
+        else {
+          newResults = results.filter(report => {
+            let incidentDescription = JSON.parse(report.incidentDescription);
+            let date = new Date(incidentDescription.date).getTime();
+
+            return date > dateObj.from && date < dateObj.to;
+          });
+
+        console.log("EVENT_EMITTED by: Date");
+          QueryState.emit("QUERY_FINISHED", newResults, "date");
+        }
+
+      }); 
+    }
+
+  }
+
+  queryLocation(locationType, onErr, data=null) {
+    let newResults;
+    let testableRegExp = new RegExp("\"type\":\"" + locationType + "\"", "i");
+
+    if(data !== null) {
+      newResults = data.filter(report => testableRegExp.test(report.incidentDescription));
+      QueryState.emit("QUERY_FINISHED", newResults, "location_type");
+    } else {
+      ReportModel.find(
+        {incidentDescription: new RegExp("\"type\":\"" + locationType + "\"", "i")}, 
+        (err, results) => {
+          if(err)
+         console.log(err);
+            // onErr();
+          else {
+            QueryState.emit("QUERY_FINISHED", results, "location_type");
+          }
+        }
+      );
+    }
+
+  }
+
+  queryFlags(flagsString, onErr, data=null) {
+    let flags = flagsString.split(";");
+
+    if(data !== null) {
+      let results = data.filter(report => {
+
+        let trues = flags.filter(flag => {
+          return new RegExp("\"" + flag + "\"", "i").test(report.incidentDescription);
+        });
+
+        return trues.length == flags.length;
+      });
+
+      QueryState.emit("QUERY_FINISHED", results, "flags");
+    } else {
+      ReportModel.find((err, results) => {
+        if(err)
+         console.log(err);
+          // onErr();
+        else {
+
+          let newResults = results.filter(report => {
+
+            let trues = flags.filter(flag => {
+              return new RegExp("\"" + flag + "\"", "i").test(report.incidentDescription);
+            });
+
+            return trues.length == flags.length;
+          });
+
+          QueryState.emit("QUERY_FINISHED", newResults, "flags");
+        }
+
+      });
+    }
 
   }
 
