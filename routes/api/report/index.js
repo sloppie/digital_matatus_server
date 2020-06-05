@@ -34,6 +34,7 @@ route.post("/new", (request, response) => {
   // of each part of the reporting process.
   const payload = {
     reportAdded: false,
+    report_id: "",
     userReportsAdded: false,
     routeReportAdded: false, // change wording
   };
@@ -42,6 +43,7 @@ route.post("/new", (request, response) => {
 
     const onRouteAddSuccess = () => {
       payload.routeReportAdded = true;
+      payload.report_id = doc._id;
 
       response.json(payload); // responds with successful add of data
     } // onRouteAddSuccess
@@ -138,6 +140,49 @@ route.get("/find/:reportid", (request, response) => {
     (result) => response.json(result),
     () => response.status(404).json(false)
   );
+});
+
+// "http://192.168.43.89:3000/api/report/" + report_id + "/add/culpritInformation"
+route.put("/:report_id/add/culpritInformation", (request, response) => {
+
+  console.log("Adding culprit Information");
+
+  const onSuccess = () => {
+    console.log("SUCCESS_ADDING_REPORT");
+    response.json(true);
+  }
+
+  const onErr = () => {
+    console.log("FAILURE_ADDING_REPORT");
+    response.json(true);
+  }
+
+  Report.updateCulpritsIdentified(
+    request.params.report_id,
+    request.body, // new culprit object
+    onSuccess,
+    onErr
+  );
+});
+
+// "http://192.168.43.89:3000/api/report/" + report_id + "add/matatuDetails"
+route.put("/:report_id/add/matatuDetails", (request, response) => {
+
+  const onErr = () => {
+    response.json(false);
+  }
+
+  const onSuccess = () => {
+    response.json(true);
+  }
+
+  Report.updateMatatuDetails(
+    request.params.report_id,
+    request.body,
+    onSuccess,
+    onErr
+  );
+
 });
 
 module.exports = route;

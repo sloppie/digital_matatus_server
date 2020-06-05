@@ -18,11 +18,9 @@ const ReportSchema = new mongoose.Schema({
   culpritDescription: String,
   privateInformation: {
     type: String,
-    required: true,
   },
   culpritIdentified: {
     type: String,
-    required: true
   }, // Arrays of culprits identified are stringified
 });
 
@@ -133,6 +131,59 @@ class Report extends DataModel {
         this.queryFlags(queryValues[activePriority], onErr, resultsProcessed);
         break;
     }
+
+  }
+
+  updateCulpritsIdentified = (report_id, newCulpritObj, onSuccess, onErr) => {
+    ReportModel.findById(
+      report_id,
+      (err, results) => {
+        if(err)
+          onErr();
+        else {
+          let culpritsIdentified = results.culpritsIdentified;
+
+          if(culpritsIdentified) {
+            let newCulprits = [...JSON.parse(culpritsIdentified), newCulpritObj];
+
+            this.updateDetails(
+              report_id,
+              {culpritsIdentified: JSON.stringify(newCulprits)},
+              onSuccess,
+              onErr
+            );
+          } else {
+            this.updateDetails(
+              report_id, 
+              {culpritsIdentified: JSON.stringify([newCulpritObj])},
+              onSuccess,
+              onErr
+            )
+          }
+
+        }
+          
+      }
+    )
+  }
+
+  updateMatatuDetails = (report_id, payload, onSuccess, onErr) => {
+
+    ReportModel,this.findById(report_id,  (err, result) => {
+      if(err)
+        onErr();
+      else {
+        let culpritDescription = JSON.parse(result.culpritDescription);
+        culpritDescription["matatuDetails"] = payload;
+
+        this.updateDetails(
+          report_id,
+          {culpritDescription: JSON.stringify(culpritDescription)},
+          onSuccess,
+          onErr
+        );
+      }
+    });
 
   }
 

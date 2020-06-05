@@ -99,6 +99,7 @@ route.get("/:route_id/reports", (request, response) => {
 
       if(reportCount == report_ids.length) {
         console.log("Report sent");
+        FindReport.removeAllListeners("REPORT_ADDED");
         response.json(ALL_REPORTS);
 
       }
