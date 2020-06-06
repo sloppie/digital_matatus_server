@@ -168,11 +168,15 @@ route.put("/:report_id/add/culpritInformation", (request, response) => {
 // "http://192.168.43.89:3000/api/report/" + report_id + "add/matatuDetails"
 route.put("/:report_id/add/matatuDetails", (request, response) => {
 
+  console.log("Adding matatu details");
+
   const onErr = () => {
+    console.log("Succcess adding details");
     response.json(false);
   }
 
   const onSuccess = () => {
+    console.log("Succcess adding details");
     response.json(true);
   }
 
