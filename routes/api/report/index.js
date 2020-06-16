@@ -13,6 +13,9 @@ const Routes = new RoutesModel();
 
 const route = express.Router();
 
+// data structures
+const BST = require('../../../utilities/data_structures').BST;
+
 // middleware
 route.use(bodyParser.json({limit: "50mb"}))
 
@@ -111,8 +114,23 @@ route.get("/find", (request, response) => {
 
   const onSuccess = (payload) => {
 
-    if(!response.headersSent)
-      response.json(payload);
+    if(!response.headersSent) {
+      // the Payload is a bunch of Reports in an array (but they aren't sorted)
+      // thus using the BST we will sort it
+      let reportBST = null;
+
+      for(let i=(payload.length - 1); i>=0; i--) {
+        
+        // truthy value (resorts to falsy if the value is null)
+        if(reportBST)
+          reportBST.add(payload[i]);
+        else
+          reportBST = new BST(payload[i]);
+
+      }
+
+      response.json(reportBST.reports);
+    }
 
   }
 
