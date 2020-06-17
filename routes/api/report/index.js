@@ -129,7 +129,10 @@ route.get("/find", (request, response) => {
 
       }
 
-      response.json(reportBST.reports);
+      if(reportBST !== null)
+        response.json(reportBST.reports);
+      else
+        response.json([]);
     }
 
   }
