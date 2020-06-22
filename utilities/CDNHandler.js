@@ -10,11 +10,12 @@ class CDNHandler {
   /**
    * 
    * @param {String} type these may be one of three: "audio" | "video" | "photo"
-   * @param {Array<String>} mediaArr the media is brought in as String files
+   * @param {String} media the media is brought in as String files
    */
-  constructor(type, mediaArr) {
+  constructor(type, media, fileExt) {
     this.type = type;
-    this.mediaArr = mediaArr;
+    this.media = media;
+    this.fileExt = fileExt;
   }
 
   static get ACCEPTED_TYPES() {
@@ -51,22 +52,18 @@ class CDNHandler {
   /**
    * passes over media handed in by the user and is then transferred to the CDN
    * 
-   * @returns {Array<String>} returns an array of urls that when resolved by the client will pull
+   * @returns {String} returns an the url that when resolved by the client will pull
    * the respective media
    */
   storeMedia() {
 
-    let mediaFileLinks = this.mediaArr.map(mediaFile => {
-      let fileName = this.getFileName();
-      fs.writeFileSync(
-        path.join("D:\\digital_matatus_server", "cdn", this.type, `${fileName}.${mediaFile.extension}`),
-        mediaFile.data
-      );
+    let fileName = this.getFileName();
+    fs.writeFileSync(
+      path.join("D:\\digital_matatus_server", "cdn", this.type, `${fileName}.${this.fileExt}`),
+      this.media
+    );
 
-      return `http://localhost:3000/cdn/${this.type}/${fileName}`; // url representing how to fetch the file
-    });
-
-    return mediaFileLinks;
+    return `http://localhost:3000/cdn/${this.type}/${fileName}`;
   }
 
 }

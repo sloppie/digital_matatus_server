@@ -377,7 +377,7 @@ class Report extends DataModel {
     let finalReport = {};
 
     // each part of the report is stringified and sent to the collection as a String
-    finalReport.incidentDescription = JSON.stringify(Report.unpackIncident(userSentReport.incidentDescription));
+    finalReport.incidentDescription = JSON.stringify(userSentReport.incidentDescription);
     finalReport.culpritDescription = JSON.stringify(userSentReport.culpritDescription);
     finalReport.culpritsIdentified = JSON.stringify([]); // this will be used to push any culprit identified
     finalReport.privateInformation = JSON.stringify(userSentReport.privateInformation)
