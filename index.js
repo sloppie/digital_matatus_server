@@ -112,38 +112,58 @@ app.post("/cdn/upload/:mediaType", (request, response) => {
 
   if(mediaType === "audio") {
     audioUpload(request, response, (err) => {
+
       if(err)
         response.json({mediaUrl: null});
       else {
-        console.log("Uploading content from audio call");
-        let dirSize = fs.readdirSync(path.join(__dirname, "cdn", "audio")).length;
-        // since the last file was the one saved by the middleware
-        response.json({mediaUrl: `http://192.168.43.89:3000/cdn/fetch/audio/AUD_${dirSize - 1}`});
+        console.log("Uploading content to audio storage");
+        let folderChildren = fs.readdirSync(path.join(__dirname, "cdn", "audio"));
+        let dirSize = folderChildren.length;
+        // this will return an array with only the last file added
+        // since the array returned will be of size 1, we can just pop the element
+        // and store it.
+        let mediaSavedName = folderChildren.filter(file => new RegExp(`AUD_${dirSize}`).test(file)).pop();
+
+        response.json({mediaUrl: `/cdn/fetch/audio/AUD_${mediaSavedName}`});
       }
+      
     });
   } else if(mediaType === "photo") {
     photoUpload(request, response, (err) => {
+
       if(err)
         response.json({mediaUrl: null});
       else {
-        console.log("Uploading content");
-        console.log("Uploading content from photo call");
-        let dirSize = fs.readdirSync(path.join(__dirname, "cdn", "photo")).length;
-        // since the last file was the one saved by the middleware
-        response.json({mediaUrl: `http://192.168.43.89:3000/cdn/fetch/photo/IMG_${dirSize - 1}`});
+        console.log("Uploading content to photo storage");
+        let folderChildren = fs.readdirSync(path.join(__dirname, "cdn", "photo")).length;
+        let dirSize = folderChildren.length;
+        // this will return an array with only the last file added
+        // since the array returned will be of size 1, we can just pop the element
+        // and store it.
+        let mediaSavedName = folderChildren.filter(file => new RegExp(`IMG_${dirSize}`).test(file)).pop();
+
+        response.json({mediaUrl: `/cdn/fetch/photo/IMG_${mediaSavedName}`});
       }
+
     });
   } else if(mediaType === "video") {
     videoUpload(request, response, (err) => {
+
       if(err)
         response.json({mediaUrl: null});
       else {
         console.log("Uploading content");
-        console.log("Uploading content from video call");
-        let dirSize = fs.readdirSync(path.join(__dirname, "cdn", "video")).length;
-        // since the last file was the one saved by the middleware
-        response.json({mediaUrl: `http://192.168.43.89:300/cdn/fetch/video/VID_${dirSize - 1}`});
+        console.log("Uploading content to video");
+        let folderChildren = fs.readdirSync(path.join(__dirname, "cdn", "video")).length;
+        let dirSize = folderChildren.length;
+        // this will return an array with only the last file added
+        // since the array returned will be of size 1, we can just pop the element
+        // and store it.
+        let mediaSavedName = folderChildren.filter(file => new RegExp(`VID_${dirSize}`).test(file)).pop();
+
+        response.json({mediaUrl: `/cdn/fetch/video/VID_${mediaSavedName}`});
       }
+
     });
   }
 
