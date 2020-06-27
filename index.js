@@ -83,6 +83,7 @@ module.exports = {
 // - sendFile -> if the file is successfully resolved
 // - send('Media file not found') -> if the media file is not resolved
 app.get("/cdn/fetch/:mediaType/:fileName", (request, response) => {
+  console.log("Fetching the Media file: " + request.params.fileName);
   let {mediaType, fileName} = request.params;
   let location = path.join(__dirname, "cdn", mediaType);
   let file = null; // stores the file
@@ -92,7 +93,7 @@ app.get("/cdn/fetch/:mediaType/:fileName", (request, response) => {
   for(let i=0; i<children.length; i++) {
     let mediaFile = path.join(location, children[i]);
     
-    if(path.parse(mediaFile).name == fileName) {
+    if(children[i] == fileName) {
       file = mediaFile;
       break;
     }
@@ -100,6 +101,7 @@ app.get("/cdn/fetch/:mediaType/:fileName", (request, response) => {
   }
 
   if(file) {
+    console.log("sending back file: " + file);
     response.sendFile(file);
   } else {
     response.send('Media file not found');
@@ -118,7 +120,7 @@ app.post("/cdn/upload/:mediaType", (request, response) => {
       else {
         console.log("Uploading content to audio storage");
         let folderChildren = fs.readdirSync(path.join(__dirname, "cdn", "audio"));
-        let dirSize = folderChildren.length;
+        let dirSize = folderChildren.length - 1;
         // this will return an array with only the last file added
         // since the array returned will be of size 1, we can just pop the element
         // and store it.
@@ -135,14 +137,14 @@ app.post("/cdn/upload/:mediaType", (request, response) => {
         response.json({mediaUrl: null});
       else {
         console.log("Uploading content to photo storage");
-        let folderChildren = fs.readdirSync(path.join(__dirname, "cdn", "photo")).length;
-        let dirSize = folderChildren.length;
+        let folderChildren = fs.readdirSync(path.join(__dirname, "cdn", "photo"));
+        let dirSize = folderChildren.length - 1;
         // this will return an array with only the last file added
         // since the array returned will be of size 1, we can just pop the element
         // and store it.
         let mediaSavedName = folderChildren.filter(file => new RegExp(`IMG_${dirSize}`).test(file)).pop();
 
-        response.json({mediaUrl: `/cdn/fetch/photo/IMG_${mediaSavedName}`});
+        response.json({mediaUrl: `/cdn/fetch/photo/${mediaSavedName}`});
       }
 
     });
@@ -154,8 +156,8 @@ app.post("/cdn/upload/:mediaType", (request, response) => {
       else {
         console.log("Uploading content");
         console.log("Uploading content to video");
-        let folderChildren = fs.readdirSync(path.join(__dirname, "cdn", "video")).length;
-        let dirSize = folderChildren.length;
+        let folderChildren = fs.readdirSync(path.join(__dirname, "cdn", "video"));
+        let dirSize = folderChildren.length - 1;
         // this will return an array with only the last file added
         // since the array returned will be of size 1, we can just pop the element
         // and store it.
