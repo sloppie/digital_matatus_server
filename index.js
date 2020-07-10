@@ -126,7 +126,7 @@ app.post("/cdn/upload/:mediaType", (request, response) => {
         // and store it.
         let mediaSavedName = folderChildren.filter(file => new RegExp(`AUD_${dirSize}`).test(file)).pop();
 
-        response.json({mediaUrl: `/cdn/fetch/audio/AUD_${mediaSavedName}`});
+        response.json({mediaUrl: `/cdn/fetch/audio/${mediaSavedName}`});
       }
       
     });
@@ -163,7 +163,7 @@ app.post("/cdn/upload/:mediaType", (request, response) => {
         // and store it.
         let mediaSavedName = folderChildren.filter(file => new RegExp(`VID_${dirSize}`).test(file)).pop();
 
-        response.json({mediaUrl: `/cdn/fetch/video/VID_${mediaSavedName}`});
+        response.json({mediaUrl: `/cdn/fetch/video/${mediaSavedName}`});
       }
 
     });

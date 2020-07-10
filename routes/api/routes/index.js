@@ -20,6 +20,7 @@ const route = express.Router();
 route.use(bodyParser.json({limit: "50mb"}));
 
 route.get("/", (request, response) => {
+  console.log("configuring routes...");
   try {
     let routes = require('../../../GTFS_FEED/routes/routes.json');
 
@@ -34,10 +35,13 @@ route.get("/", (request, response) => {
 
       return routeObj;
     });
+    
 
     Routes.DataModel.insertMany(modelledRoutes, (err, result) => {
 
       if(err) {
+        console.log("Routes already configured!");
+        console.log("Routes are already populated and in use.");
         Routes.DataModel.find({route_long_name: new RegExp("wangige", "gi")}, (err, docs) => {
           if(err)
             response.send("eror");
@@ -47,6 +51,7 @@ route.get("/", (request, response) => {
         });
       }
       else {
+        console.log("setup finished! Routes ready for use");
         response.json(result[0]);
       }
 
