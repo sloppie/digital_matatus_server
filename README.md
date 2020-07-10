@@ -32,7 +32,7 @@ Follow the procedure for installing the MongoDB data base <a href="https://docs.
 ### Complete the setup
 1. `cd` into the root directory where the server is contained
 2. run the following command `node index`
-3. perform a `GET` request to the `'/'` route of the server to finish set up
+3. perform a `GET` request to the `'/api/routes'` route of the server to finish set up
 
 ### Run the server
 1. Run `node index` in the root directory of the server
