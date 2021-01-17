@@ -7,7 +7,7 @@ const User = new UserModel();
 // routes JSON
 const routes = require('../GTFS_FEED/routes/routes.json');
 
-const serviceJSON = require('../../firebase_credentials/digitalmatatus-firebase-adminsdk-eag40-3995d03871.json');
+const serviceJSON = require('../../firebase_credentials/digitalmatatus-firebase-adminsdk-eag40-3526881dd2.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceJSON),

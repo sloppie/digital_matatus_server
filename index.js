@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
+const connectTimeout = require('connect-timeout');
 
 const app = express();
 
@@ -53,13 +54,16 @@ const audioUpload = multer({
 const routes = require('./routes');
 const CDNHandler = require('./utilities/CDNHandler');
 
-mongoose.connect("mongodb://127.0.0.1:27017/digital_matatus", {useNewUrlParser: true});
+mongoose.connect("mongodb://127.0.0.1:27017/digital_matatus", {useNewUrlParser: true, useUnifiedTopology: true});
 
 const db = mongoose.connection; // database conection
 
 db.on("error", () => console.log("Failed to connect"));
 
+db.on("open", () => console.log("Database connected! Open for service"));
+
 app.use("/api", routes.api);
+app.use(connectTimeout('12s'));
 
 app.use(bodyParser.raw({type: "image/*", limit: "10mb"}));
 app.use(bodyParser.raw({type: "audio/*", limit: "50mb"}));
@@ -171,5 +175,7 @@ app.post("/cdn/upload/:mediaType", (request, response) => {
 
 });
 
-app.listen(3000, () => console.log("listening on port 3000"));
+app.set("port", 3000);
+
+app.listen(app.get("port"), () => console.log("listening on port 3000"));
 
