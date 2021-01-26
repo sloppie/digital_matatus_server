@@ -1,4 +1,4 @@
 node_modules
 *.txt
-/cdn/*
+cdn
 yarn.lock
