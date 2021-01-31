@@ -33,8 +33,8 @@ const generateReportMessage = (userSentReport, reportID) => {
     ? "a matatu driver"
     : (userSentReport.culpritDescription.culpritType == "Conductor")
     ? "a matatu conductor"
-    : (userSentReport.culpritDescription.culpritType == "Route Handler")
-    ? "the matatu route handler"
+    : (userSentReport.culpritDescription.culpritType == "Stage Handler")
+    ? "the matatu stage handler"
     : (userSentReport.culpritDescription.culpritType == "Pedestrian")
     ? "a pedestrian"
     : "a third party (pedestrian, motorist etc.)"
